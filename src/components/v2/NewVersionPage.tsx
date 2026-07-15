@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { capabilities } from "../../data/capabilities";
 import HeroCube from "./HeroCube";
 import QuantumCanvas, { type QuantumCanvasPalette } from "./QuantumCanvas";
+import QuantumNetworkVisual from "./QuantumNetworkVisual";
+import ServiceVisual from "./ServiceVisual";
 import ZoneRail, { type Zone } from "./ZoneRail";
 import "./NewVersionPage.scss";
 
@@ -59,7 +61,7 @@ const outcomes = [
   },
 ];
 
-type AccentId = "quantum" | "azure" | "violet" | "amber" | "coral";
+type AccentId = "verdant" | "quantum" | "azure" | "amber";
 
 type AccentPalette = {
   id: AccentId;
@@ -72,45 +74,45 @@ type AccentPalette = {
 
 const accentPalettes: AccentPalette[] = [
   {
-    id: "quantum",
-    label: "Квантовый зелёно-синий",
-    primary: "#63e2bd",
-    secondary: "#5ea6f2",
-    highlight: "#caf7eb",
+    id: "verdant",
+    label: "Интенсивный зелёный",
+    primary: "#18f2a3",
+    secondary: "#00c978",
+    highlight: "#caffea",
     canvas: {
-      anchor: "#dbe7e7",
-      staticLine: "rgba(99, 226, 189, 0.13)",
-      streakTailRgb: "121, 188, 181",
-      streakMidRgb: "175, 219, 218",
-      streakHeadRgb: "249, 252, 251",
+      anchor: "#d9eee6",
+      staticLine: "rgba(24, 242, 163, 0.17)",
+      streakTailRgb: "45, 207, 145",
+      streakMidRgb: "151, 237, 201",
+      streakHeadRgb: "245, 255, 251",
+    },
+  },
+  {
+    id: "quantum",
+    label: "Бирюзовый компромисс",
+    primary: "#00e7b8",
+    secondary: "#00bfea",
+    highlight: "#c8fff5",
+    canvas: {
+      anchor: "#d9ecea",
+      staticLine: "rgba(0, 231, 184, 0.17)",
+      streakTailRgb: "28, 194, 187",
+      streakMidRgb: "139, 229, 224",
+      streakHeadRgb: "246, 255, 254",
     },
   },
   {
     id: "azure",
-    label: "Лазурно-синий",
-    primary: "#55d7f2",
-    secondary: "#5277ff",
-    highlight: "#d4f7ff",
+    label: "Интенсивный синий",
+    primary: "#22c9ff",
+    secondary: "#3568ff",
+    highlight: "#d4f6ff",
     canvas: {
       anchor: "#dce9ed",
-      staticLine: "rgba(85, 215, 242, 0.13)",
-      streakTailRgb: "98, 169, 205",
-      streakMidRgb: "177, 216, 232",
+      staticLine: "rgba(34, 201, 255, 0.17)",
+      streakTailRgb: "61, 157, 226",
+      streakMidRgb: "155, 211, 244",
       streakHeadRgb: "249, 252, 253",
-    },
-  },
-  {
-    id: "violet",
-    label: "Фиолетово-розовый",
-    primary: "#a879ff",
-    secondary: "#e164cf",
-    highlight: "#efe0ff",
-    canvas: {
-      anchor: "#e7e0eb",
-      staticLine: "rgba(168, 121, 255, 0.13)",
-      streakTailRgb: "159, 125, 192",
-      streakMidRgb: "218, 192, 225",
-      streakHeadRgb: "252, 249, 253",
     },
   },
   {
@@ -127,20 +129,6 @@ const accentPalettes: AccentPalette[] = [
       streakHeadRgb: "253, 251, 247",
     },
   },
-  {
-    id: "coral",
-    label: "Кораллово-малиновый",
-    primary: "#ff7c70",
-    secondary: "#d45fa2",
-    highlight: "#ffe0dc",
-    canvas: {
-      anchor: "#ebe0e1",
-      staticLine: "rgba(255, 124, 112, 0.13)",
-      streakTailRgb: "192, 126, 139",
-      streakMidRgb: "226, 193, 201",
-      streakHeadRgb: "253, 249, 250",
-    },
-  },
 ];
 
 const accentStorageKey = "kubiteks-v2-accent";
@@ -153,6 +141,7 @@ function clamp(value: number, minimum: number, maximum: number) {
 function NewVersionPage() {
   const servicesExperienceRef = useRef<HTMLDivElement>(null);
   const floatingBrandRef = useRef<HTMLAnchorElement>(null);
+  const brandShieldRef = useRef<HTMLDivElement>(null);
   const floatingCubeRef = useRef<HTMLAnchorElement>(null);
   const heroBrandAnchorRef = useRef<HTMLSpanElement>(null);
   const heroCubeAnchorRef = useRef<HTMLDivElement>(null);
@@ -228,10 +217,11 @@ function NewVersionPage() {
 
   useEffect(() => {
     const brand = floatingBrandRef.current;
+    const brandShield = brandShieldRef.current;
     const cube = floatingCubeRef.current;
     const brandAnchor = heroBrandAnchorRef.current;
     const cubeAnchor = heroCubeAnchorRef.current;
-    if (!brand || !cube || !brandAnchor || !cubeAnchor) {
+    if (!brand || !brandShield || !cube || !brandAnchor || !cubeAnchor) {
       return;
     }
 
@@ -262,21 +252,37 @@ function NewVersionPage() {
       brand.style.transform = `translate3d(${stickyBrandLeft}px, ${stickyBrandTop}px, 0px)`;
       const brandLineHeight = brand.getBoundingClientRect().height;
 
-      const cubeOuterSize = 520;
-      const cubeInnerMargin = 65;
+      const brandPinnedScrollY = Math.max(0, startBrandTop - stickyInset);
+      const shieldDistance = clamp(viewportHeight * 0.2, 150, 230);
+      const shieldProgress = clamp((window.scrollY - brandPinnedScrollY) / shieldDistance, 0, 1);
+      const easedShieldProgress = shieldProgress * shieldProgress * (3 - 2 * shieldProgress);
+      const brandWidth = brand.getBoundingClientRect().width;
+      const shieldCenterX = stickyBrandLeft + brandWidth / 2;
+      const shieldCenterY = stickyBrandTop + brandLineHeight / 2;
+      const shieldRadiusX = brandWidth * 0.62 + (isMobile ? 24 : 40);
+      const shieldRadiusY = brandLineHeight * 0.9 + 18;
+
+      brandShield.style.setProperty("--v2-shield-center-x", `${shieldCenterX}px`);
+      brandShield.style.setProperty("--v2-shield-center-y", `${shieldCenterY}px`);
+      brandShield.style.setProperty("--v2-shield-radius-x", `${shieldRadiusX}px`);
+      brandShield.style.setProperty("--v2-shield-radius-y", `${shieldRadiusY}px`);
+      brandShield.style.opacity = easedShieldProgress.toFixed(3);
+
+      const cubeOuterSize = 346.667;
+      const cubeInnerMargin = 43.333;
       const startCubeScale = isMobile ? 0.64 : isStacked ? 0.8 : 1;
       const startCubeLeft = cubeAnchorRect.left + (cubeAnchorRect.width - cubeOuterSize * startCubeScale) / 2;
       const startCubeTop = cubeAnchorRect.top + window.scrollY + (cubeAnchorRect.height - cubeOuterSize * startCubeScale) / 2;
       const targetCubeToBrandRatio = 0.352856;
       const compactCubeScaleMultiplier = 1.4;
       const baseTargetCubeScale = clamp(
-        (startBrandSize * targetCubeToBrandRatio) / 390,
+        (startBrandSize * targetCubeToBrandRatio) / 260,
         isMobile ? 0.055 : 0.075,
         0.13,
       );
       const targetCubeScale = baseTargetCubeScale * compactCubeScaleMultiplier;
       const targetGap = (isMobile ? 8 : isStacked ? 16 : 24) * compactCubeScaleMultiplier;
-      const targetCubeBodySize = 390 * targetCubeScale;
+      const targetCubeBodySize = 260 * targetCubeScale;
       const cubeOpticalLift = clamp(brandLineHeight * 0.1, 4, 9);
       const targetCubeLeft = stickyBrandLeft
         - targetGap
@@ -287,7 +293,6 @@ function NewVersionPage() {
         - cubeInnerMargin * targetCubeScale
         - cubeOpticalLift;
       const cubeCenterScrollY = startCubeTop + (cubeOuterSize * startCubeScale) / 2;
-      const brandPinnedScrollY = Math.max(0, startBrandTop - stickyInset);
       const relocationStartScrollY = Math.max(cubeCenterScrollY, brandPinnedScrollY);
       const transitionDistance = clamp(viewportHeight * 0.17, 120, 180);
       const sequenceProgress = clamp(
@@ -445,6 +450,7 @@ function NewVersionPage() {
       >
         КУБИТЭКС
       </a>
+      <div ref={brandShieldRef} className="v2-brand-shield" aria-hidden="true" />
       <a
         ref={floatingCubeRef}
         className="v2-floating-cube"
@@ -491,7 +497,7 @@ function NewVersionPage() {
               <p className="v2-eyebrow">Цифровые продукты для бизнеса</p>
               <h1>
                 <span ref={heroBrandAnchorRef} className="v2-hero__brand-space" aria-hidden="true" />
-                <span className="v2-hero__claim">Превращаем неопределённость в работающий продукт.</span>
+                <span className="v2-hero__claim">Превращаем неопределённость в работающий продукт</span>
               </h1>
               <p className="v2-hero__summary">
                 Проектируем сайты, сервисы и ИИ-решения, которые соединяют задачу бизнеса с понятным результатом.
@@ -522,7 +528,7 @@ function NewVersionPage() {
         <section className="v2-services" id="v2-services" data-zone>
           <div className="v2-shell v2-section-intro">
             <p className="v2-eyebrow">Что создаём</p>
-            <h2>Технология следует за задачей.</h2>
+            <h2>Технология следует за задачей</h2>
             <p>
               Восемь направлений — от первого интерфейса до сложной системы, которая выдерживает рост.
             </p>
@@ -555,6 +561,7 @@ function NewVersionPage() {
                         aria-label={`${index + 1}. ${capability.title}`}
                         aria-current={index === activeServiceIndex ? "step" : undefined}
                       >
+                        <ServiceVisual id={capability.id} />
                         <span className="v2-service-card__number">0{index + 1}</span>
                         <span className="v2-service-card__copy">
                           <strong>{capability.title}</strong>
@@ -611,7 +618,7 @@ function NewVersionPage() {
           <div className="v2-shell v2-method__layout">
             <div className="v2-method__copy">
               <p className="v2-eyebrow">Как работаем</p>
-              <h2>Сначала понимаем задачу. Потом выбираем технологию.</h2>
+              <h2>Сначала понимаем задачу<br />Потом выбираем технологию</h2>
               <p>
                 Начинаем с целей заказчика и будущих пользователей. Не усложняем решение ради стека и остаёмся рядом после запуска.
               </p>
@@ -636,12 +643,13 @@ function NewVersionPage() {
           <div className="v2-shell">
             <div className="v2-results__heading">
               <p className="v2-eyebrow">Результат для бизнеса</p>
-              <h2>Не просто разрабатываем — снимаем неопределённость.</h2>
+              <h2>Не просто разрабатываем — снимаем неопределённость</h2>
             </div>
 
             <div className="v2-results__grid">
               {outcomes.map((outcome, index) => (
                 <article className={`v2-result-card v2-result-card--${outcome.className}`} key={outcome.title}>
+                  {outcome.className === "launch" && <QuantumNetworkVisual />}
                   <span className="v2-result-card__number">0{index + 1}</span>
                   <div>
                     <h3>{outcome.title}</h3>
@@ -659,7 +667,7 @@ function NewVersionPage() {
         <div className="v2-shell v2-contact__panel">
           <div className="v2-contact__heading">
             <p className="v2-eyebrow">Контакты</p>
-            <h2>Есть задача?<br />Давайте разберём.</h2>
+            <h2>Есть задача?<br />Давайте разберём</h2>
             <p>Опишите идею или проблему — ответим по существу и предложим следующий шаг.</p>
           </div>
 
