@@ -1,0 +1,22 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>K cube wireframe logo concept v2</title>
+  <desc>Minimal cube wireframe with a K built from a vertical stem, horizontal arm, and angled tips aligned to the cube depth.</desc>
+  <rect width="1024" height="1024" fill="#050505"/>
+
+  <g stroke="#F7F7F7" stroke-width="20" stroke-linecap="butt" stroke-linejoin="miter">
+    <!-- Cube outer wireframe -->
+    <path d="M222 248 L474 150 L850 182 L735 300 Z"/>
+    <path d="M222 248 L270 690 L705 805 L735 300"/>
+    <path d="M735 300 L850 182 L830 648 L705 805"/>
+
+    <!-- K construction: vertical stem, horizontal arm, then 45-degree tips -->
+    <path d="M420 255 L420 706"/>
+    <path d="M420 515 L588 515"/>
+    <path d="M588 515 L714 389"/>
+    <path d="M588 515 L714 641"/>
+
+    <!-- Short projected depth hints that make the K tips coincide with hidden rear directions -->
+    <path d="M714 389 L850 182"/>
+    <path d="M714 641 L830 648"/>
+  </g>
+</svg>

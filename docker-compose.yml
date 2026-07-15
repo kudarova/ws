@@ -1,0 +1,7 @@
+services:
+  qubit-landing:
+    container_name: qubit-landing
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped

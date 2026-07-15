@@ -1,0 +1,19 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Orthographic wireframe cube</title>
+  <desc>A clean orthographic wireframe cube with all twelve edges visible.</desc>
+  <rect width="1024" height="1024" fill="#050505"/>
+
+  <g stroke="#F7F7F7" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+    <!-- Back face: shifted so the rear lower-left vertex projects to the front-face center -->
+    <path d="M490 130 H910 V550 H490 Z"/>
+
+    <!-- Front face -->
+    <path d="M280 340 H700 V760 H280 Z"/>
+
+    <!-- Depth edges -->
+    <path d="M280 340 L490 130"/>
+    <path d="M700 340 L910 130"/>
+    <path d="M700 760 L910 550"/>
+    <path d="M280 760 L490 550"/>
+  </g>
+</svg>

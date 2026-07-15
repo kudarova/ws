@@ -1,0 +1,62 @@
+:root {
+  --navy-950: #071b33;
+  --navy-900: #0a2442;
+  --blue-500: #1267f4;
+  --teal-500: #00b89c;
+  --violet-500: #7157ff;
+  --silver-300: #d8e2ed;
+  --mist-50: #f4f7fb;
+  --primary-color: var(--blue-500);
+  --primary-gradient: linear-gradient(115deg, #1267f4 0%, #00b89c 100%);
+  font-family:
+    Bahnschrift, Aptos, "Trebuchet MS", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--navy-950);
+  background-color: var(--mist-50);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--mist-50);
+}
+
+body,
+h1,
+h2,
+p,
+ol {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
