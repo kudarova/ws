@@ -127,7 +127,7 @@ function clamp(value: number, minimum: number, maximum: number) {
 function HomePage() {
   const servicesExperienceRef = useRef<HTMLDivElement>(null);
   const floatingBrandRef = useRef<HTMLAnchorElement>(null);
-  const floatingCubeRef = useRef<HTMLAnchorElement>(null);
+  const floatingCubeRef = useRef<HTMLDivElement>(null);
   const heroBrandAnchorRef = useRef<HTMLSpanElement>(null);
   const heroCubeAnchorRef = useRef<HTMLDivElement>(null);
   const [accentId, setAccentId] = useState<AccentId>(() => {
@@ -397,24 +397,19 @@ function HomePage() {
       >
         КУБИТЭКС
       </a>
-      <a
+      <div
         ref={floatingCubeRef}
         className="v2-floating-cube"
-        href="#v2-top"
-        aria-label="Кубитэкс — перейти в начало"
       >
         <HeroCube active={activeZone === "v2-top"} />
-      </a>
+      </div>
 
       <ZoneRail zones={zones} activeId={activeZone} />
 
       <header className="v2-topbar">
-        <TopNavigation zones={zones} activeId={activeZone} />
+        <TopNavigation zones={zones} activeId={activeZone} projectsUrl={projectsUrl} />
         <div className="v2-topbar__actions">
           <AccentPicker palettes={accentPalettes} value={accentId} onChange={(id) => setAccentId(id as AccentId)} />
-          <a className="v2-topbar__projects" href={projectsUrl}>
-            Наши проекты <Icon name="arrow-up-right" className="v2-icon" />
-          </a>
           <a className="v2-topbar__contact" href="#v2-contact">
             Обсудить проект <Icon name="arrow-up-right" className="v2-icon" />
           </a>
