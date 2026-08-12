@@ -1,9 +1,9 @@
-# New Version — design source of truth
+# КУБИТЭКС — design source of truth
 
 ## Scope
 
-- Change only the `/v2` route. The current site remains intact.
-- Preserve the useful information from New Version, but do not reuse its previous style or composition.
+- The site has one production page and one visual system.
+- Preserve the useful information architecture while keeping the current restrained composition.
 - Keep five clear zones: hero, services, approach, business result, contacts.
 
 ## Canvas

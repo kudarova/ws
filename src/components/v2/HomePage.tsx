@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { capabilities } from "../../data/capabilities";
 import HeroCube from "./HeroCube";
+import AccentPicker from "./AccentPicker";
+import Icon from "./Icon";
 import QuantumCanvas, { type QuantumCanvasPalette } from "./QuantumCanvas";
 import QuantumNetworkVisual from "./QuantumNetworkVisual";
-import ServiceVisual from "./ServiceVisual";
+import ServiceDeck from "./ServiceDeck";
+import TopNavigation from "./TopNavigation";
 import ZoneRail, { type Zone } from "./ZoneRail";
-import "./NewVersionPage.scss";
+import useMediaQuery from "./useMediaQuery";
+import "./HomePage.scss";
 
 const zones: Zone[] = [
   { id: "v2-top", label: "Начало" },
@@ -81,10 +85,6 @@ const accentPalettes: AccentPalette[] = [
     highlight: "#caffea",
     canvas: {
       anchor: "#d9eee6",
-      staticLine: "rgba(24, 242, 163, 0.17)",
-      streakTailRgb: "45, 207, 145",
-      streakMidRgb: "151, 237, 201",
-      streakHeadRgb: "245, 255, 251",
     },
   },
   {
@@ -95,10 +95,6 @@ const accentPalettes: AccentPalette[] = [
     highlight: "#c8fff5",
     canvas: {
       anchor: "#d9ecea",
-      staticLine: "rgba(0, 231, 184, 0.17)",
-      streakTailRgb: "28, 194, 187",
-      streakMidRgb: "139, 229, 224",
-      streakHeadRgb: "246, 255, 254",
     },
   },
   {
@@ -109,10 +105,6 @@ const accentPalettes: AccentPalette[] = [
     highlight: "#d4f6ff",
     canvas: {
       anchor: "#dce9ed",
-      staticLine: "rgba(34, 201, 255, 0.17)",
-      streakTailRgb: "61, 157, 226",
-      streakMidRgb: "155, 211, 244",
-      streakHeadRgb: "249, 252, 253",
     },
   },
   {
@@ -123,25 +115,18 @@ const accentPalettes: AccentPalette[] = [
     highlight: "#fff1c8",
     canvas: {
       anchor: "#ebe6dc",
-      staticLine: "rgba(244, 198, 94, 0.13)",
-      streakTailRgb: "190, 151, 100",
-      streakMidRgb: "228, 208, 174",
-      streakHeadRgb: "253, 251, 247",
     },
   },
 ];
 
-const accentStorageKey = "kubiteks-v2-accent";
-const enableCompactCubeRelocation = false;
-
+const accentStorageKey = "kubiteks-accent";
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function NewVersionPage() {
+function HomePage() {
   const servicesExperienceRef = useRef<HTMLDivElement>(null);
   const floatingBrandRef = useRef<HTMLAnchorElement>(null);
-  const brandShieldRef = useRef<HTMLDivElement>(null);
   const floatingCubeRef = useRef<HTMLAnchorElement>(null);
   const heroBrandAnchorRef = useRef<HTMLSpanElement>(null);
   const heroCubeAnchorRef = useRef<HTMLDivElement>(null);
@@ -158,9 +143,10 @@ function NewVersionPage() {
   const [activeZone, setActiveZone] = useState(zones[0].id);
   const [serviceProgress, setServiceProgress] = useState(0);
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
+  const compactMotion = useMediaQuery("(max-width: 900px)");
   const activeCapability = capabilities[activeServiceIndex] ?? capabilities[0];
   const activePalette = accentPalettes.find(({ id }) => id === accentId) ?? accentPalettes[0];
-  const projectsUrl = import.meta.env.VITE_PROJECTS_URL || "./#cases";
+  const projectsUrl = import.meta.env.VITE_PROJECTS_URL || "#v2-results";
 
   useEffect(() => {
     try {
@@ -216,12 +202,46 @@ function NewVersionPage() {
   }, []);
 
   useEffect(() => {
+    const zoneTargets = Array.from(document.querySelectorAll<HTMLElement>("[data-zone]"));
+    const floatingCube = floatingCubeRef.current;
+
+    const setInView = (target: HTMLElement, inView: boolean) => {
+      const value = inView ? "true" : "false";
+      target.dataset.inView = value;
+
+      if (target.id === "v2-top" && floatingCube) {
+        floatingCube.dataset.inView = value;
+      }
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      zoneTargets.forEach((target) => setInView(target, true));
+
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setInView(entry.target as HTMLElement, entry.isIntersecting);
+        });
+      },
+      { rootMargin: "20% 0px 20% 0px", threshold: 0.01 },
+    );
+
+    zoneTargets.forEach((target) => observer.observe(target));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     const brand = floatingBrandRef.current;
-    const brandShield = brandShieldRef.current;
     const cube = floatingCubeRef.current;
     const brandAnchor = heroBrandAnchorRef.current;
     const cubeAnchor = heroCubeAnchorRef.current;
-    if (!brand || !brandShield || !cube || !brandAnchor || !cubeAnchor) {
+    if (!brand || !cube || !brandAnchor || !cubeAnchor) {
       return;
     }
 
@@ -244,85 +264,30 @@ function NewVersionPage() {
       const sharedContentLeft = brandAnchor.closest(".v2-shell")?.getBoundingClientRect().left
         ?? brandAnchorRect.left;
       const stickyBrandLeft = sharedContentLeft - 5;
-      const stickyInset = isStacked ? clamp(viewportHeight * 0.12, 48, 96) : 54.84;
+      const stickyInset = isMobile ? 16 : 22;
       const stickyBrandTop = Math.max(stickyInset, startBrandTop - window.scrollY);
-
-      brand.style.fontSize = `${startBrandSize}px`;
-      brand.style.letterSpacing = "-0.075em";
-      brand.style.transform = `translate3d(${stickyBrandLeft}px, ${stickyBrandTop}px, 0px)`;
-      const brandLineHeight = brand.getBoundingClientRect().height;
-
       const brandPinnedScrollY = Math.max(0, startBrandTop - stickyInset);
-      const shieldDistance = clamp(viewportHeight * 0.2, 150, 230);
-      const shieldProgress = clamp((window.scrollY - brandPinnedScrollY) / shieldDistance, 0, 1);
-      const easedShieldProgress = shieldProgress * shieldProgress * (3 - 2 * shieldProgress);
-      const brandWidth = brand.getBoundingClientRect().width;
-      const shieldCenterX = stickyBrandLeft + brandWidth / 2;
-      const shieldCenterY = stickyBrandTop + brandLineHeight / 2;
-      const shieldRadiusX = brandWidth * 0.62 + (isMobile ? 24 : 40);
-      const shieldRadiusY = brandLineHeight * 0.9 + 18;
+      const transitionDistance = clamp(viewportHeight * 0.12, 96, 150);
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const progress = reducedMotion
+        ? (window.scrollY >= brandPinnedScrollY ? 1 : 0)
+        : clamp((window.scrollY - brandPinnedScrollY) / transitionDistance, 0, 1);
+      const isCompact = progress >= 0.5;
+      const compactLeft = isMobile ? 16 : Math.max(16, stickyBrandLeft);
+      const brandOpacity = isCompact ? (progress - 0.5) * 2 : 1 - progress * 2;
 
-      brandShield.style.setProperty("--v2-shield-center-x", `${shieldCenterX}px`);
-      brandShield.style.setProperty("--v2-shield-center-y", `${shieldCenterY}px`);
-      brandShield.style.setProperty("--v2-shield-radius-x", `${shieldRadiusX}px`);
-      brandShield.style.setProperty("--v2-shield-radius-y", `${shieldRadiusY}px`);
-      brandShield.style.opacity = easedShieldProgress.toFixed(3);
+      brand.style.fontSize = `${isCompact ? startBrandSize * 0.5 : startBrandSize}px`;
+      brand.style.letterSpacing = "-0.075em";
+      brand.style.opacity = brandOpacity.toFixed(3);
+      brand.style.transform = `translate3d(${isCompact ? compactLeft : stickyBrandLeft}px, ${isCompact ? stickyInset : stickyBrandTop}px, 0)`;
 
       const cubeOuterSize = 346.667;
-      const cubeInnerMargin = 43.333;
       const startCubeScale = isMobile ? 0.64 : isStacked ? 0.8 : 1;
       const startCubeLeft = cubeAnchorRect.left + (cubeAnchorRect.width - cubeOuterSize * startCubeScale) / 2;
       const startCubeTop = cubeAnchorRect.top + window.scrollY + (cubeAnchorRect.height - cubeOuterSize * startCubeScale) / 2;
-      const targetCubeToBrandRatio = 0.352856;
-      const compactCubeScaleMultiplier = 1.4;
-      const baseTargetCubeScale = clamp(
-        (startBrandSize * targetCubeToBrandRatio) / 260,
-        isMobile ? 0.055 : 0.075,
-        0.13,
-      );
-      const targetCubeScale = baseTargetCubeScale * compactCubeScaleMultiplier;
-      const targetGap = (isMobile ? 8 : isStacked ? 16 : 24) * compactCubeScaleMultiplier;
-      const targetCubeBodySize = 260 * targetCubeScale;
-      const cubeOpticalLift = clamp(brandLineHeight * 0.1, 4, 9);
-      const targetCubeLeft = stickyBrandLeft
-        - targetGap
-        - targetCubeBodySize
-        - cubeInnerMargin * targetCubeScale;
-      const targetCubeTop = stickyBrandTop
-        + (brandLineHeight - targetCubeBodySize) / 2
-        - cubeInnerMargin * targetCubeScale
-        - cubeOpticalLift;
-      const cubeCenterScrollY = startCubeTop + (cubeOuterSize * startCubeScale) / 2;
-      const relocationStartScrollY = Math.max(cubeCenterScrollY, brandPinnedScrollY);
-      const transitionDistance = clamp(viewportHeight * 0.17, 120, 180);
-      const sequenceProgress = clamp(
-        (window.scrollY - relocationStartScrollY) / transitionDistance,
-        0,
-        1,
-      );
-
-      if (!enableCompactCubeRelocation) {
-        cube.classList.remove("is-compact");
-        cube.style.opacity = "1";
-        cube.style.pointerEvents = "auto";
-        cube.style.transform = `translate3d(${startCubeLeft}px, ${startCubeTop - window.scrollY}px, 0px) scale(${startCubeScale})`;
-        return;
-      }
-
-      const isRelocated = sequenceProgress >= 0.5;
-      const phaseProgress = isRelocated
-        ? (sequenceProgress - 0.5) * 2
-        : sequenceProgress * 2;
-      const easedPhase = phaseProgress * phaseProgress * (3 - 2 * phaseProgress);
-      const cubeOpacity = isRelocated ? easedPhase : 1 - easedPhase;
-      const cubeLeft = isRelocated ? targetCubeLeft : startCubeLeft;
-      const cubeTop = isRelocated ? targetCubeTop : startCubeTop;
-      const cubeScale = isRelocated ? targetCubeScale : startCubeScale;
-
-      cube.classList.toggle("is-compact", isRelocated);
-      cube.style.opacity = cubeOpacity.toFixed(3);
-      cube.style.pointerEvents = cubeOpacity < 0.05 ? "none" : "auto";
-      cube.style.transform = `translate3d(${cubeLeft}px, ${cubeTop}px, 0px) scale(${cubeScale})`;
+      cube.style.opacity = "1";
+      cube.style.pointerEvents = "auto";
+      cube.style.transform = `translate3d(${startCubeLeft}px, ${startCubeTop - window.scrollY}px, 0px) scale(${startCubeScale})`;
     };
 
     const requestUpdate = () => {
@@ -344,7 +309,8 @@ function NewVersionPage() {
 
   useEffect(() => {
     const experience = servicesExperienceRef.current;
-    if (!experience) {
+    if (!experience || compactMotion) {
+      setServiceProgress(activeServiceIndex);
       return;
     }
 
@@ -379,9 +345,15 @@ function NewVersionPage() {
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", requestUpdate);
     };
-  }, []);
+  }, [compactMotion]);
 
   const moveToService = (index: number) => {
+    if (compactMotion) {
+      setActiveServiceIndex((current) => (current === index ? current : index));
+      setServiceProgress(index);
+      return;
+    }
+
     const experience = servicesExperienceRef.current;
     if (!experience) {
       return;
@@ -397,31 +369,6 @@ function NewVersionPage() {
       top: sectionTop + scrollableDistance * serviceRatio,
       behavior: reducedMotion ? "auto" : "smooth",
     });
-  };
-
-  const getServiceCardStyle = (index: number): CSSProperties => {
-    const relativePosition = index - serviceProgress;
-    let translate = 0;
-    let scale = 1;
-    let opacity = 1;
-
-    if (relativePosition < 0) {
-      const passed = -relativePosition;
-      translate = -Math.min(passed, 1.25) * 34;
-      scale = 1 - Math.min(passed, 1) * 0.085;
-      opacity = clamp(1 - Math.max(0, passed - 0.76) * 3.8, 0, 1);
-    } else {
-      translate = Math.min(relativePosition, 1.08) * 112;
-      const fadeProgress = clamp((1.08 - relativePosition) / 0.34, 0, 1);
-      opacity = fadeProgress * fadeProgress * (3 - 2 * fadeProgress);
-    }
-
-    return {
-      zIndex: 20 + index,
-      opacity,
-      pointerEvents: relativePosition >= -0.55 && relativePosition <= 1.08 ? "auto" : "none",
-      transform: `translate3d(0, ${translate}%, 0) scale(${scale})`,
-    };
   };
 
   const servicesHeight = `${100 + (capabilities.length - 1) * 72}svh`;
@@ -450,42 +397,26 @@ function NewVersionPage() {
       >
         КУБИТЭКС
       </a>
-      <div ref={brandShieldRef} className="v2-brand-shield" aria-hidden="true" />
       <a
         ref={floatingCubeRef}
         className="v2-floating-cube"
         href="#v2-top"
         aria-label="Кубитэкс — перейти в начало"
       >
-        <HeroCube />
+        <HeroCube active={activeZone === "v2-top"} />
       </a>
 
       <ZoneRail zones={zones} activeId={activeZone} />
 
       <header className="v2-topbar">
+        <TopNavigation zones={zones} activeId={activeZone} />
         <div className="v2-topbar__actions">
-          <div className="v2-accent-picker" role="group" aria-label="Цветовое настроение сайта">
-            {accentPalettes.map((palette) => (
-              <button
-                className="v2-accent-picker__swatch"
-                type="button"
-                key={palette.id}
-                title={palette.label}
-                aria-label={palette.label}
-                aria-pressed={palette.id === accentId}
-                style={{
-                  "--v2-swatch-a": palette.primary,
-                  "--v2-swatch-b": palette.secondary,
-                } as CSSProperties}
-                onClick={() => setAccentId(palette.id)}
-              />
-            ))}
-          </div>
+          <AccentPicker palettes={accentPalettes} value={accentId} onChange={(id) => setAccentId(id as AccentId)} />
           <a className="v2-topbar__projects" href={projectsUrl}>
-            Наши проекты <span aria-hidden="true">↗</span>
+            Наши проекты <Icon name="arrow-up-right" className="v2-icon" />
           </a>
           <a className="v2-topbar__contact" href="#v2-contact">
-            Обсудить проект <span aria-hidden="true">↗</span>
+            Обсудить проект <Icon name="arrow-up-right" className="v2-icon" />
           </a>
         </div>
       </header>
@@ -504,10 +435,10 @@ function NewVersionPage() {
               </p>
               <div className="v2-hero__actions">
                 <a className="v2-action v2-action--primary" href="#v2-contact">
-                  Обсудить проект <span aria-hidden="true">↗</span>
+                  Обсудить проект <Icon name="arrow-up-right" className="v2-icon" />
                 </a>
                 <a className="v2-action v2-action--quiet" href="#v2-services">
-                  Смотреть услуги <span aria-hidden="true">↓</span>
+                  Смотреть услуги <Icon name="arrow-down" className="v2-icon" />
                 </a>
               </div>
             </div>
@@ -532,46 +463,23 @@ function NewVersionPage() {
             <p>
               Восемь направлений — от первого интерфейса до сложной системы, которая выдерживает рост.
             </p>
+            <nav className="v2-service-quick-links" aria-label="Быстрый переход по направлениям">
+              {capabilities.map((capability, index) => (
+                <button type="button" key={capability.id} onClick={() => moveToService(index)}>
+                  {capability.title}
+                </button>
+              ))}
+            </nav>
           </div>
 
           <div
             ref={servicesExperienceRef}
             className="v2-services__experience"
-            style={{ height: servicesHeight }}
+            style={compactMotion ? undefined : { height: servicesHeight }}
           >
             <div className="v2-services__sticky">
               <div className="v2-shell v2-services__stage">
-                <div className="v2-service-deck" aria-label="Направления разработки">
-                  <div className="v2-service-deck__guide" aria-hidden="true">
-                    <span>Прокрутите</span>
-                    <i />
-                    <strong>0{activeServiceIndex + 1}</strong>
-                    <small>/ 08</small>
-                  </div>
-
-                  <div className="v2-service-deck__cards">
-                    {capabilities.map((capability, index) => (
-                      <button
-                        className={`v2-service-card ${index === activeServiceIndex ? "is-active" : ""}`}
-                        type="button"
-                        key={capability.id}
-                        style={getServiceCardStyle(index)}
-                        onClick={() => moveToService(index)}
-                        tabIndex={Math.abs(index - activeServiceIndex) <= 1 ? 0 : -1}
-                        aria-label={`${index + 1}. ${capability.title}`}
-                        aria-current={index === activeServiceIndex ? "step" : undefined}
-                      >
-                        <ServiceVisual id={capability.id} />
-                        <span className="v2-service-card__number">0{index + 1}</span>
-                        <span className="v2-service-card__copy">
-                          <strong>{capability.title}</strong>
-                          <small>{capability.teaser}</small>
-                        </span>
-                        <span className="v2-service-card__corner" aria-hidden="true" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <ServiceDeck capabilities={capabilities} activeIndex={activeServiceIndex} progress={serviceProgress} mobile={compactMotion} onSelect={moveToService} />
 
                 <article className="v2-service-detail" aria-live="polite">
                   <div className="v2-service-detail__content" key={activeCapability.id}>
@@ -604,7 +512,7 @@ function NewVersionPage() {
                     </dl>
 
                     <a className="v2-text-link" href="#v2-contact">
-                      Обсудить задачу <span aria-hidden="true">↗</span>
+                      Обсудить задачу <Icon name="arrow-up-right" className="v2-icon" />
                     </a>
                   </div>
                 </article>
@@ -649,7 +557,6 @@ function NewVersionPage() {
             <div className="v2-results__grid">
               {outcomes.map((outcome, index) => (
                 <article className={`v2-result-card v2-result-card--${outcome.className}`} key={outcome.title}>
-                  {outcome.className === "launch" && <QuantumNetworkVisual />}
                   <span className="v2-result-card__number">0{index + 1}</span>
                   <div>
                     <h3>{outcome.title}</h3>
@@ -657,6 +564,7 @@ function NewVersionPage() {
                   </div>
                 </article>
               ))}
+              <QuantumNetworkVisual />
             </div>
           </div>
         </section>
@@ -673,26 +581,27 @@ function NewVersionPage() {
 
           <div className="v2-contact__links">
             <a href="mailto:kubiteks@mail.ru">
-              <span>Почта</span>
-              <strong>kubiteks@mail.ru</strong>
-              <i aria-hidden="true">↗</i>
-            </a>
-            <a href="https://t.me/cubitex_dev">
-              <span>Telegram</span>
-              <strong>@cubitex_dev</strong>
-              <i aria-hidden="true">↗</i>
+              <Icon name="mail" className="v2-contact__icon" />
+              <span className="v2-contact__content">
+                <span>Почта</span>
+                <strong>kubiteks@mail.ru</strong>
+              </span>
+              <Icon name="arrow-up-right" className="v2-contact__arrow" />
             </a>
             <a href="tel:+79493276561">
-              <span>Телефон</span>
-              <strong>+7 (949) 327-65-61</strong>
-              <i aria-hidden="true">↗</i>
+              <Icon name="phone" className="v2-contact__icon" />
+              <span className="v2-contact__content">
+                <span>Телефон</span>
+                <strong>+7 (949) 327-65-61</strong>
+              </span>
+              <Icon name="arrow-up-right" className="v2-contact__arrow" />
             </a>
           </div>
 
           <div className="v2-contact__bottom">
             <span>© 2026 КУБИТЭКС</span>
-            <a href="https://kubiteks.ru">kubiteks.ru</a>
-            <a href="#v2-top">Наверх ↑</a>
+            <a href="https://kubitex.ru"><Icon name="globe" className="v2-icon" /> kubitex.ru</a>
+            <a href="#v2-top">Наверх <Icon name="arrow-up" className="v2-icon" /></a>
           </div>
         </div>
       </footer>
@@ -700,4 +609,4 @@ function NewVersionPage() {
   );
 }
 
-export default NewVersionPage;
+export default HomePage;

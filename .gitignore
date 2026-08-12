@@ -25,3 +25,8 @@ dist-ssr
 
 .env*
 !.env.example
+
+# Local execution plans
+/handoffs/
+
+/public/design/

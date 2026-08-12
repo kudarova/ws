@@ -30,6 +30,10 @@ type CubeComet = {
 
 type CubeImpact = Pick<CubeComet, "id" | "face" | "impactX" | "impactY">;
 
+type HeroCubeProps = {
+  active: boolean;
+};
+
 const randomBetween = (minimum: number, maximum: number) => (
   minimum + Math.random() * (maximum - minimum)
 );
@@ -106,7 +110,7 @@ const createComet = (id: number): CubeComet => {
 
 const coordinate = (value: number) => `calc(var(--cube-depth) * ${value.toFixed(3)})`;
 
-function HeroCube() {
+function HeroCube({ active }: HeroCubeProps) {
   const [comet, setComet] = useState<CubeComet | null>(null);
   const [impact, setImpact] = useState<CubeImpact | null>(null);
   const impactTimerRef = useRef<number>(0);
@@ -116,47 +120,55 @@ function HeroCube() {
     let cometId = 0;
     let spawnTimer = 0;
 
+    const clearMotion = () => {
+      window.clearTimeout(spawnTimer);
+      window.clearTimeout(impactTimerRef.current);
+      setComet(null);
+      setImpact(null);
+    };
+
+    const canAnimate = () => (
+      active && !motionQuery.matches && !document.hidden
+    );
+
     const scheduleComet = (initial = false) => {
       window.clearTimeout(spawnTimer);
 
-      if (motionQuery.matches || document.hidden) {
+      if (!canAnimate()) {
         return;
       }
 
       const delay = initial ? randomBetween(650, 1050) : randomBetween(1000, 2000);
       spawnTimer = window.setTimeout(() => {
+        if (!canAnimate()) {
+          return;
+        }
+
         cometId += 1;
         setComet(createComet(cometId));
         scheduleComet();
       }, delay);
     };
 
-    const handleMotionChange = () => {
-      setComet(null);
-      setImpact(null);
+    const resetAndSchedule = () => {
+      clearMotion();
       scheduleComet(true);
     };
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        window.clearTimeout(spawnTimer);
-        setComet(null);
-      } else {
-        scheduleComet(true);
-      }
+      resetAndSchedule();
     };
 
     scheduleComet(true);
-    motionQuery.addEventListener("change", handleMotionChange);
+    motionQuery.addEventListener("change", resetAndSchedule);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.clearTimeout(spawnTimer);
-      window.clearTimeout(impactTimerRef.current);
-      motionQuery.removeEventListener("change", handleMotionChange);
+      clearMotion();
+      motionQuery.removeEventListener("change", resetAndSchedule);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [active]);
 
   const handleCometAnimationEnd = (event: AnimationEvent<HTMLSpanElement>, finishedComet: CubeComet) => {
     if (event.target !== event.currentTarget || event.animationName !== "v2-cube-comet-flight") {
@@ -164,6 +176,15 @@ function HeroCube() {
     }
 
     setComet((current) => (current?.id === finishedComet.id ? null : current));
+
+    if (
+      !active
+      || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      || document.hidden
+    ) {
+      return;
+    }
+
     setImpact({
       id: finishedComet.id,
       face: finishedComet.face,
