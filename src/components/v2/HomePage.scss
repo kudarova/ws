@@ -191,7 +191,7 @@
 
 .v2-topbar {
   position: fixed;
-  z-index: 60;
+  z-index: 100;
   top: 0;
   right: 0;
   left: 0;
@@ -318,6 +318,7 @@
 
 .v2-top-navigation__panel {
   position: absolute;
+  z-index: 102;
   top: calc(100% + 11px);
   right: 0;
   display: grid;
@@ -382,7 +383,7 @@
 
 .v2-accent-picker__panel {
   position: absolute;
-  z-index: 2;
+  z-index: 102;
   top: calc(100% + 8px);
   right: 0;
   display: grid;
