@@ -276,7 +276,7 @@ function HomePage() {
       const compactLeft = isMobile ? 16 : Math.max(16, stickyBrandLeft);
       const brandOpacity = isCompact ? (progress - 0.5) * 2 : 1 - progress * 2;
 
-      brand.style.fontSize = `${isCompact ? startBrandSize * 0.5 : startBrandSize}px`;
+      brand.style.fontSize = `${isCompact ? startBrandSize * (isMobile ? 0.75 : 0.5) : startBrandSize}px`;
       brand.style.letterSpacing = "-0.075em";
       brand.style.opacity = brandOpacity.toFixed(3);
       brand.style.transform = `translate3d(${isCompact ? compactLeft : stickyBrandLeft}px, ${isCompact ? stickyInset : stickyBrandTop}px, 0)`;

@@ -210,7 +210,7 @@
 
 .v2-floating-brand {
   position: fixed;
-  z-index: 82;
+  z-index: 101;
   top: 0;
   left: 0;
   width: max-content;
@@ -254,6 +254,13 @@
   align-items: center;
   gap: 26px;
   pointer-events: auto;
+}
+
+@media (min-width: 901px) {
+  .v2-top-navigation,
+  .v2-topbar__actions {
+    transform: translateY(-20px);
+  }
 }
 
 .v2-top-navigation {
